@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Planner</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f3;
+    --bg-tertiary: #ededea;
+    --text-primary: #1a1a18;
+    --text-secondary: #5c5c58;
+    --text-tertiary: #9a9992;
+    --border-light: rgba(0,0,0,0.10);
+    --border-mid: rgba(0,0,0,0.18);
+    --border-heavy: rgba(0,0,0,0.28);
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1a;
+      --bg-secondary: #252523;
+      --bg-tertiary: #111110;
+      --text-primary: #f0efe8;
+      --text-secondary: #a8a89e;
+      --text-tertiary: #6a6a62;
+      --border-light: rgba(255,255,255,0.08);
+      --border-mid: rgba(255,255,255,0.14);
+      --border-heavy: rgba(255,255,255,0.22);
+      --accent: #3b82f6;
+      --accent-bg: #172554;
+      --success: #22c55e;
+      --success-bg: #052e16;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  header {
+    max-width: 980px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  header span {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  .planner {
+    max-width: 980px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  @media (max-width: 680px) {
+    .planner { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-tertiary);
+    margin-bottom: 14px;
+  }
+
+  .date-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .date-big {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.03em;
+  }
+
+  .date-sub {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  .stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat {
+    flex: 1;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+  }
+
+  .stat-num {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border-light);
+    border-radius: 2px;
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.35s ease;
+  }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .add-row input {
+    flex: 1;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+  }
+
+  .add-row input::placeholder { color: var(--text-tertiary); }
+  .add-row input:focus { border-color: var(--accent); }
+
+  .add-row button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  .add-row button:hover { background: var(--bg-secondary); }
+  .add-row button:active { transform: scale(0.97); }
+
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .filter-btn {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 0.5px solid var(--border-light);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .filter-btn:hover { border-color: var(--border-mid); color: var(--text-primary); }
+  .filter-btn.active { background: var(--bg-secondary); border-color: var(--border-heavy); color: var(--text-primary); font-weight: 500; }
+
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.12s;
+    user-select: none;
+  }
+
+  .task-item:hover { background: var(--bg-secondary); }
+  .task-item.done { opacity: 0.42; }
+
+  .task-check {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border-mid);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .task-item.done .task-check {
+    background: var(--success-bg);
+    border-color: var(--success);
+  }
+
+  .task-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .task-item.done .task-text {
+    text-decoration: line-through;
+    color: var(--text-tertiary);
+  }
+
+  .task-del {
+    opacity: 0;
+    font-size: 18px;
+    line-height: 1;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    padding: 0 2px;
+  }
+
+  .task-item:hover .task-del { opacity: 1; }
+  .task-del:hover { color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 36px 0;
+    color: var(--text-tertiary);
+    font-size: 14px;
+  }
+
+  .empty-state i { font-size: 30px; display: block; margin-bottom: 8px; }
+
+  /* Calendar */
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .cal-nav button {
+    border: 0.5px solid var(--border-light);
+    background: transparent;
+    border-radius: var(--radius-md);
+    padding: 4px 10px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 16px;
+    font-family: inherit;
+  }
+
+  .cal-nav button:hover { background: var(--bg-secondary); }
+
+  .cal-month-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-day-name {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    padding-bottom: 6px;
+  }
+
+  .cal-day {
+    text-align: center;
+    font-size: 13px;
+    padding: 5px 2px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    color: var(--text-secondary);
+    position: relative;
+    line-height: 1.4;
+  }
+
+  .cal-day:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .cal-day.other { opacity: 0.3; }
+
+  .cal-day.is-today { font-weight: 600; color: var(--text-primary); }
+  .cal-day.is-today::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin: 1px auto 0;
+  }
+
+  .cal-day.selected {
+    background: var(--bg-primary);
+    border: 1.5px solid var(--border-heavy);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .cal-day.has-tasks::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--warning);
+    margin: 0 auto 1px;
+  }
+
+  /* Upcoming */
+  .upcoming { margin-top: 18px; }
+
+  .upcoming-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+
+  .upcoming-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--border-light);
+    cursor: pointer;
+  }
+
+  .upcoming-item:last-child { border-bottom: none; }
+  .upcoming-item:hover .upcoming-text { color: var(--text-primary); }
+
+  .upcoming-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--warning);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .upcoming-date {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    min-width: 38px;
+    flex-shrink: 0;
+  }
+
+  .upcoming-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Daily Planner</h1>
+  <span id="header-date"></span>
+</header>
+
+<div class="planner" id="app"></div>
+
+<script>
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const now = new Date();
+const pad = n => String(n).padStart(2,'0');
+const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = dateKey(now);
+
+document.getElementById('header-date').textContent =
+  `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+let state = {
+  selectedKey: todayKey,
+  calYear: now.getFullYear(),
+  calMonth: now.getMonth(),
+  tasks: {},
+  filter: 'all'
+};
+
+try { state.tasks = JSON.parse(localStorage.getItem('planner_tasks') || '{}'); } catch(e) {}
+
+function save() { try { localStorage.setItem('planner_tasks', JSON.stringify(state.tasks)); } catch(e) {} }
+function getTasks(k) { return state.tasks[k] || []; }
+function setTasks(k, list) { state.tasks[k] = list; save(); }
+
+function addTask(k, text) {
+  const list = getTasks(k);
+  list.push({ id: Date.now(), text, done: false });
+  setTasks(k, list);
+}
+
+function toggleTask(k, id) {
+  setTasks(k, getTasks(k).map(t => t.id === id ? {...t, done: !t.done} : t));
+}
+
+function deleteTask(k, id) {
+  setTasks(k, getTasks(k).filter(t => t.id !== id));
+}
+
+function labelForKey(k) {
+  const [y, m, d] = k.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dt.getDay()];
+  const isToday = k === todayKey;
+  return {
+    big: `${dayName}, ${MONTHS[m-1]} ${d}`,
+    sub: isToday ? 'Today' : (y !== now.getFullYear() ? String(y) : '')
+  };
+}
+
+function getUpcoming() {
+  const result = [];
+  const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let i = 1; i <= 60 && result.length < 5; i++) {
+    const d = new Date(base); d.setDate(d.getDate() + i);
+    const k = dateKey(d);
+    const pending = getTasks(k).filter(t => !t.done);
+    if (pending.length) {
+      result.push({ key: k, label: `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`, tasks: pending });
+    }
+  }
+  return result;
+}
+
+function render() {
+  const k = state.selectedKey;
+  const tasks = getTasks(k);
+  const filtered = state.filter === 'all' ? tasks
+    : state.filter === 'active' ? tasks.filter(t => !t.done)
+    : tasks.filter(t => t.done);
+  const done = tasks.filter(t => t.done).length;
+  const total = tasks.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  const { big, sub } = labelForKey(k);
+
+  const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
+  const firstDow = new Date(state.calYear, state.calMonth, 1).getDay();
+  const prevMonthDays = new Date(state.calYear, state.calMonth, 0).getDate();
+
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) {
+    const d = prevMonthDays - firstDow + 1 + i;
+    const ck = dateKey(new Date(state.calYear, state.calMonth - 1, d));
+    cells += `<div class="cal-day other${ck===k?' selected':''}" data-key="${ck}">${d}</div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ck = dateKey(new Date(state.calYear, state.calMonth, d));
+    const cls = [
+      'cal-day',
+      ck === todayKey ? 'is-today' : '',
+      ck === k ? 'selected' : '',
+      getTasks(ck).length ? 'has-tasks' : ''
+    ].filter(Boolean).join(' ');
+    cells += `<div class="${cls}" data-key="${ck}">${d}</div>`;
+  }
+  const trailing = 42 - firstDow - daysInMonth;
+  for (let d = 1; d <= trailing; d++) {
+    const ck = dateKey(new Date(state.calYear, state.calMonth + 1, d));
+    cells += `<div class="cal-day other${ck===k?' selected':''}" data-key="${ck}">${d}</div>`;
+  }
+
+  const upcoming = getUpcoming();
+
+  document.getElementById('app').innerHTML = `
+    <div class="panel">
+      <div class="date-header">
+        <span class="date-big">${big}</span>
+        ${sub ? `<span class="date-sub">${sub}</span>` : ''}
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">tasks</div></div>
+        <div class="stat"><div class="stat-num">${done}</div><div class="stat-label">done</div></div>
+        <div class="stat"><div class="stat-num">${pct}%</div><div class="stat-label">complete</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="add-row">
+        <input type="text" id="new-task" placeholder="Add a task for ${sub||big.split(',')[0]}…" />
+        <button id="add-btn"><i class="ti ti-plus"></i> Add</button>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn${state.filter==='all'?' active':''}" data-f="all">All</button>
+        <button class="filter-btn${state.filter==='active'?' active':''}" data-f="active">Active</button>
+        <button class="filter-btn${state.filter==='done'?' active':''}" data-f="done">Done</button>
+      </div>
+      <div class="task-list">
+        ${filtered.length === 0
+          ? `<div class="empty-state"><i class="ti ti-circle-check"></i>${total===0?'No tasks yet — add one above':'Nothing here'}</div>`
+          : filtered.map(t => `
+            <div class="task-item${t.done?' done':''}" data-id="${t.id}">
+              <div class="task-check">${t.done?'<i class="ti ti-check" style="font-size:11px;color:var(--success)"></i>':''}</div>
+              <span class="task-text">${escHtml(t.text)}</span>
+              <button class="task-del" data-del="${t.id}" title="Remove">×</button>
+            </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="panel">
+        <div class="cal-nav">
+          <button id="prev-mo"><i class="ti ti-chevron-left"></i></button>
+          <span class="cal-month-label">${MONTHS[state.calMonth]} ${state.calYear}</span>
+          <button id="next-mo"><i class="ti ti-chevron-right"></i></button>
+        </div>
+        <div class="cal-grid">
+          ${DAYS.map(d=>`<div class="cal-day-name">${d[0]}</div>`).join('')}
+          ${cells}
+        </div>
+        ${upcoming.length ? `
+          <div class="upcoming">
+            <div class="upcoming-label">Upcoming</div>
+            ${upcoming.map(u=>`
+              <div class="upcoming-item" data-key="${u.key}">
+                <div class="upcoming-dot"></div>
+                <span class="upcoming-date">${u.label}</span>
+                <span class="upcoming-text">${u.tasks.length} task${u.tasks.length>1?'s':''}: ${u.tasks.map(t=>escHtml(t.text)).join(', ')}</span>
+              </div>`).join('')}
+          </div>` : ''}
+      </div>
+    </div>`;
+
+  document.getElementById('add-btn').onclick = doAdd;
+  document.getElementById('new-task').onkeydown = e => { if (e.key==='Enter') doAdd(); };
+  document.getElementById('prev-mo').onclick = () => {
+    if (state.calMonth===0){state.calMonth=11;state.calYear--;} else state.calMonth--;
+    render();
+  };
+  document.getElementById('next-mo').onclick = () => {
+    if (state.calMonth===11){state.calMonth=0;state.calYear++;} else state.calMonth++;
+    render();
+  };
+  document.querySelectorAll('[data-key]').forEach(el => {
+    el.onclick = () => {
+      const [y,m,d] = el.dataset.key.split('-').map(Number);
+      state.calYear = y; state.calMonth = m-1; state.selectedKey = el.dataset.key;
+      render();
+    };
+  });
+  document.querySelectorAll('.task-item[data-id]').forEach(el => {
+    el.onclick = e => {
+      if (e.target.closest('[data-del]')) return;
+      toggleTask(k, Number(el.dataset.id)); render();
+    };
+  });
+  document.querySelectorAll('[data-del]').forEach(el => {
+    el.onclick = e => { e.stopPropagation(); deleteTask(k, Number(el.dataset.del)); render(); };
+  });
+  document.querySelectorAll('[data-f]').forEach(el => {
+    el.onclick = () => { state.filter = el.dataset.f; render(); };
+  });
+}
+
+function doAdd() {
+  const inp = document.getElementById('new-task');
+  const text = inp.value.trim();
+  if (!text) return;
+  addTask(state.selectedKey, text);
+  inp.value = '';
+  render();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+render();
+</script>
+</body>
+</html>
