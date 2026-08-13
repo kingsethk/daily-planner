@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Progrex — Daily Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #f5f5f3;
+  --bg2:       #ffffff;
+  --bg3:       #f0f0ee;
+  --bg4:       #e8e8e5;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.14);
+  --border3:   rgba(0,0,0,0.22);
+  --text:      #1a1a18;
+  --text2:     #5c5c58;
+  --text3:     #9a9992;
+
+  --work:        #6366f1;
+  --work-bg:     rgba(99,102,241,0.10);
+  --personal:    #10b981;
+  --personal-bg: rgba(16,185,129,0.10);
+  --health:      #f59e0b;
+  --health-bg:   rgba(245,158,11,0.10);
+  --finance:     #ec4899;
+  --finance-bg:  rgba(236,72,153,0.10);
+
+  --danger:    #ef4444;
+  --danger-bg: rgba(239,68,68,0.10);
+  --success:   #16a34a;
+  --success-bg:rgba(22,163,74,0.10);
+  --warn:      #d97706;
+
+  --radius:    10px;
+  --radius-sm: 7px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── NAV ── */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--bg2);
+  border-bottom: 0.5px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: var(--shadow);
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.03em;
+}
+.logo span { color: var(--work); }
+
+.nav-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg3);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+
+.nav-tab {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active { background: var(--bg2); color: var(--text); box-shadow: var(--shadow); }
+
+.nav-right { display: flex; gap: 8px; align-items: center; }
+
+.donate-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 0.5px solid var(--finance);
+  border-radius: var(--radius-sm);
+  background: var(--finance-bg);
+  color: var(--finance);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.donate-btn:hover { background: rgba(236,72,153,0.18); }
+
+/* ── PAGES ── */
+.page { display: none; padding: 20px 24px; }
+.page.active { display: block; }
+
+/* ── CANVAS for drag ── */
+#planner-canvas {
+  position: relative;
+  min-height: calc(100vh - 120px);
+}
+
+/* ── WIDGETS ── */
+.widget {
+  position: absolute;
+  background: var(--bg2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-width: 280px;
+  user-select: none;
+}
+
+.widget.dragging {
+  box-shadow: var(--shadow-lg);
+  opacity: 0.95;
+  z-index: 100;
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 10px;
+  border-bottom: 0.5px solid var(--border);
+  cursor: grab;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.widget-header:active { cursor: grabbing; }
+
+.widget-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.widget-title .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border2);
+}
+
+.widget-collapse {
+  font-size: 16px;
+  color: var(--text3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.widget-collapse:hover { color: var(--text); }
+
+.widget-body { padding: 16px; }
+.widget.collapsed .widget-body { display: none; }
+.widget.collapsed { border-radius: var(--radius); }
+
+/* ── PANEL TITLE (inside widgets) ── */
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+/* ── DATE HEADER ── */
+.date-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
+.date-big { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.date-sub { font-size: 13px; color: var(--text3); }
+
+/* ── STATS ── */
+.stats { display: flex; gap: 8px; margin-bottom: 16px; }
+.stat { flex:1; background: var(--bg3); border-radius: var(--radius-sm); padding: 9px 12px; }
+.stat-num { font-size: 20px; font-weight: 600; color: var(--text); }
+.stat-label { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+.progress-bar { height: 2px; background: var(--border); border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--success); border-radius: 2px; transition: width 0.35s ease; }
+
+/* ── ADD TASK BUTTON ── */
+.add-task-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text3);
+  background: var(--bg3);
+  border: 0.5px dashed var(--border2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all 0.15s;
+  text-align: left;
+}
+.add-task-trigger:hover { border-color: var(--work); color: var(--text); background: var(--work-bg); }
+
+/* ── ADD TASK DROPDOWN ── */
+.add-task-dropdown {
+  display: none;
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-lg);
+}
+.add-task-dropdown.open { display: block; }
+
+.add-field { margin-bottom: 10px; }
+.add-label { font-size: 11px; font-weight: 500; color: var(--text3); margin-bottom: 4px; }
+.add-input {
+  width: 100%;
+  font-size: 14px;
+  padding: 8px 11px;
+  border: 0.5px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  color: var(--text);
+  outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.add-input:focus { border-color: var(--work); background: var(--bg2); }
+
+.add-row-inline { display: flex; gap: 8px; }
+.add-row-inline .add-field { flex: 1; }
+
+/* Category picker */
+.cat-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+.cat-opt {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 999px;
+  border: 0.5px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.12s;
+}
+.cat-opt.sel-work     { background: var(--work-bg);     border-color: var(--work);     color: var(--work); }
+.cat-opt.sel-personal { background: var(--personal-bg); border-color: var(--personal); color: var(--personal); }
+.cat-opt.sel-health   { background: var(--health-bg);   border-color: var(--health);   color: var(--health); }
+.cat-opt.sel-finance  { background: var(--finance-bg);  border-color: var(--finance);  color: var(--finance); }
+.cat-opt.sel-none     { background: var(--bg4);         border-color: var(--border3);  color: var(--text2); }
+
+/* Recur toggle */
+.recur-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.recur-toggle input[type="checkbox"] { accent-color: var(--work); width: 15px; height: 15px; cursor: pointer; }
+
+.recur-extra { display: none; margin-top: 8px; }
+.recur-extra.open { display: block; }
+
+.add-actions { display: flex; gap: 8px; margin-top: 14px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 8px 16px; font-size: 13px; font-weight: 500;
+  border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+  background: transparent; color: var(--text); cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: background 0.12s;
+}
+.btn:hover { background: var(--bg3); }
+.btn.primary { background: var(--work); border-color: var(--work); color: #fff; }
+.btn.primary:hover { background: #5254cc; }
+.btn.ghost { color: var(--text3); }
+.btn.ghost:hover { color: var(--text); background: var(--bg3); }
+
+/* ── FILTERS ── */
+.filter-row { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
+.chip {
+  font-size: 11px; padding: 3px 10px;
+  border-radius: 999px; border: 0.5px solid var(--border);
+  background: transparent; color: var(--text3);
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: all 0.12s;
+}
+.chip:hover { border-color: var(--border2); color: var(--text); }
+.chip.active { background: var(--bg3); border-color: var(--border2); color: var(--text); font-weight: 500; }
+.chip.c-work.active     { background: var(--work-bg);     border-color: var(--work);     color: var(--work); }
+.chip.c-personal.active { background: var(--personal-bg); border-color: var(--personal); color: var(--personal); }
+.chip.c-health.active   { background: var(--health-bg);   border-color: var(--health);   color: var(--health); }
+.chip.c-finance.active  { background: var(--finance-bg);  border-color: var(--finance);  color: var(--finance); }
+
+/* ── TASK ITEMS ── */
+.task-list { display: flex; flex-direction: column; gap: 5px; }
+
+.task-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 11px;
+  border: 0.5px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.task-item:hover { background: var(--bg3); }
+.task-item.done { opacity: 0.4; }
+.task-item.is-overdue { border-left-color: var(--danger) !important; }
+.task-item.cat-work     { border-left-color: var(--work); }
+.task-item.cat-personal { border-left-color: var(--personal); }
+.task-item.cat-health   { border-left-color: var(--health); }
+.task-item.cat-finance  { border-left-color: var(--finance); }
+.task-item.cat-none     { border-left-color: var(--border2); }
+
+.task-check {
+  width: 17px; height: 17px;
+  border: 1.5px solid var(--border2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.task-item.done .task-check { background: var(--success-bg); border-color: var(--success); }
+
+.task-body { flex: 1; min-width: 0; }
+.task-name { font-size: 14px; color: var(--text); }
+.task-item.done .task-name { text-decoration: line-through; color: var(--text3); }
+
+.task-meta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.task-badge {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 999px;
+}
+.badge-work     { background: var(--work-bg);     color: var(--work); }
+.badge-personal { background: var(--personal-bg); color: var(--personal); }
+.badge-health   { background: var(--health-bg);   color: var(--health); }
+.badge-finance  { background: var(--finance-bg);  color: var(--finance); }
+
+.task-time-lbl { font-size: 11px; color: var(--text3); }
+
+.task-acts { display: flex; gap: 2px; opacity: 0; transition: opacity 0.12s; }
+.task-item:hover .task-acts { opacity: 1; }
+.task-act-btn {
+  font-size: 13px; color: var(--text3); border: none;
+  background: none; cursor: pointer; padding: 2px 5px;
+  border-radius: 4px; font-family: 'Inter', sans-serif;
+}
+.task-act-btn:hover { background: var(--bg4); color: var(--text); }
+.task-act-btn.del:hover { color: var(--danger); }
+
+/* Edit inline */
+.task-edit-wrap { flex: 1; display: flex; gap: 6px; }
+.task-edit-wrap input, .task-edit-wrap select {
+  font-size: 13px; padding: 4px 8px;
+  border: 0.5px solid var(--work); border-radius: var(--radius-sm);
+  background: var(--bg2); color: var(--text); outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.task-edit-wrap input { flex: 1; }
+
+/* ── OVERDUE ── */
+.overdue-section { margin-top: 18px; padding-top: 16px; border-top: 0.5px solid var(--border); }
+.overdue-date { font-size: 11px; color: var(--text3); margin-bottom: 6px; margin-top: 10px; }
+
+/* ── CALENDAR ── */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-nav-btn {
+  border: 0.5px solid var(--border); background: transparent;
+  border-radius: var(--radius-sm); padding: 4px 10px;
+  cursor: pointer; color: var(--text2); font-size: 15px;
+  font-family: 'Inter', sans-serif;
+}
+.cal-nav-btn:hover { background: var(--bg3); }
+.cal-month-lbl { font-size: 14px; font-weight: 600; color: var(--text); }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.cal-day-name { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; color: var(--text3); padding-bottom: 5px; }
+.cal-day { text-align: center; font-size: 13px; padding: 5px 2px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text2); position: relative; line-height: 1.4; }
+.cal-day:hover { background: var(--bg3); color: var(--text); }
+.cal-day.other { opacity: 0.3; }
+.cal-day.is-today { font-weight: 600; color: var(--text); }
+.cal-day.is-today::after { content:''; display:block; width:4px;height:4px;border-radius:50%;background:var(--work);margin:1px auto 0; }
+.cal-day.selected { background: var(--bg3); border: 1px solid var(--border2); color:var(--text); font-weight:600; }
+.cal-day.has-tasks::before { content:''; display:block;width:4px;height:4px;border-radius:50%;background:var(--warn);margin:0 auto 1px; }
+.cal-day.has-overdue::before { background: var(--danger); }
+
+.upcoming { margin-top: 16px; }
+.upcoming-lbl { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text3); margin-bottom: 8px; }
+.upcoming-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid var(--border); cursor: pointer; }
+.upcoming-item:last-child { border-bottom: none; }
+.upcoming-item:hover .upcoming-txt { color: var(--text); }
+.upcoming-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--warn); flex-shrink:0; margin-top:5px; }
+.upcoming-dot.od { background: var(--danger); }
+.upcoming-dt { font-size: 11px; color: var(--text3); min-width: 34px; }
+.upcoming-txt { font-size: 13px; color: var(--text2); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ── NOTES ── */
+.note-ta {
+  width: 100%; min-height: 160px;
+  padding: 11px; font-size: 14px; font-family: 'Inter', sans-serif;
+  line-height: 1.6; border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--bg3);
+  color: var(--text); outline: none; resize: vertical;
+}
+.note-ta::placeholder { color: var(--text3); }
+.note-ta:focus { border-color: var(--border2); background: var(--bg2); }
+
+/* ── GOALS ── */
+.goal-add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.goal-add-row input {
+  flex: 1; font-size: 14px; padding: 8px 11px;
+  border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+  background: var(--bg3); color: var(--text); outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.goal-add-row input:focus { border-color: var(--work); background: var(--bg2); }
+
+.goal-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 5px; cursor: pointer; transition: background 0.12s; }
+.goal-item:hover { background: var(--bg3); }
+.goal-check { width: 17px; height: 17px; border: 1.5px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.goal-item.done .goal-check { background: var(--success-bg); border-color: var(--success); }
+.goal-txt { flex: 1; font-size: 14px; color: var(--text); }
+.goal-item.done .goal-txt { text-decoration: line-through; opacity: 0.45; }
+.goal-del { opacity: 0; font-size: 15px; color: var(--text3); border: none; background: none; cursor: pointer; padding: 0 2px; }
+.goal-item:hover .goal-del { opacity: 1; }
+.goal-del:hover { color: var(--danger); }
+
+/* ── JOURNAL ── */
+.journal-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.journal-nav input[type="date"] {
+  font-size: 13px; padding: 6px 10px;
+  border: 0.5px solid var(--border2); border-radius: var(--radius-sm);
+  background: var(--bg3); color: var(--text); outline: none;
+  font-family: 'Inter', sans-serif;
+}
+.journal-save-lbl { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+/* ── STORAGE INFO BANNER ── */
+.storage-info {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: var(--work-bg);
+  border: 0.5px solid rgba(99,102,241,0.2);
+  border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--text2);
+  margin-bottom: 14px;
+}
+.storage-info strong { color: var(--work); }
+
+/* ── DONATION MODAL ── */
+.modal-backdrop { display: none; position: fixed; inset:0; background: rgba(0,0,0,0.35); z-index:500; align-items:center; justify-content:center; }
+.modal-backdrop.open { display: flex; }
+.modal { background: var(--bg2); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 28px; width: 400px; max-width: 90vw; box-shadow: var(--shadow-lg); }
+.modal h2 { font-family: 'Syne', sans-serif; font-size: 20px; margin-bottom: 8px; }
+.modal p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.amt-grid { display: flex; gap: 8px; margin-bottom: 20px; }
+.amt-btn { flex:1; padding: 11px 8px; font-size: 15px; font-weight: 600; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg3); color: var(--text); cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.12s; }
+.amt-btn:hover, .amt-btn.sel { background: var(--finance-bg); border-color: var(--finance); color: var(--finance); }
+.modal-actions { display: flex; gap: 8px; }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 28px 0; color: var(--text3); font-size: 14px; }
+
+/* checkmark svg */
+.chk-svg { width: 10px; height: 10px; color: var(--success); }
+.chk-svg-danger { color: var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">progrex<span>.</span></div>
+  <div class="nav-tabs" id="nav-tabs">
+    <button class="nav-tab active" data-page="planner">Planner</button>
+    <button class="nav-tab" data-page="journal">Journal</button>
+    <button class="nav-tab" data-page="notes">Notes</button>
+  </div>
+  <div class="nav-right">
+    <button class="donate-btn" id="donate-trigger">♥ Support Progrex</button>
+  </div>
+</nav>
+
+<!-- PLANNER PAGE -->
+<div class="page active" id="page-planner">
+  <div id="planner-canvas"></div>
+</div>
+
+<!-- JOURNAL PAGE -->
+<div class="page" id="page-journal">
+  <div style="max-width:720px;margin:0 auto;">
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);">
+      <div class="section-label">Journal</div>
+      <div class="journal-nav">
+        <button class="btn" id="j-prev">‹</button>
+        <input type="date" id="j-date"/>
+        <button class="btn" id="j-next">›</button>
+        <span class="journal-save-lbl" id="j-status">Auto-saved</span>
+      </div>
+      <textarea class="note-ta" id="j-text" style="min-height:480px;" placeholder="Write freely — saved to this device only..."></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- NOTES PAGE -->
+<div class="page" id="page-notes">
+  <div style="max-width:720px;margin:0 auto;">
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);">
+      <div class="section-label">Notes</div>
+      <textarea class="note-ta" id="notes-ta" style="min-height:500px;" placeholder="Write anything here..."></textarea>
+      <div style="text-align:right;margin-top:6px;font-size:12px;" id="notes-count">0 / 10,000 characters</div>
+    </div>
+  </div>
+</div>
+
+<!-- DONATION MODAL -->
+<div class="modal-backdrop" id="donate-modal">
+  <div class="modal">
+    <h2>Support Progrex ♥</h2>
+    <p>Progrex is free and always will be. Your donation goes directly to helping fund a college student's dreams — every bit counts.</p>
+    <div class="amt-grid">
+      <button class="amt-btn" data-amt="3">$3</button>
+      <button class="amt-btn sel" data-amt="5">$5</button>
+      <button class="amt-btn" data-amt="10">$10</button>
+      <button class="amt-btn" data-amt="25">$25</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" id="donate-go">Donate</button>
+      <button class="btn ghost" id="donate-close">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ────────────────────────────────────────────────────────────────
+const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const CATS   = ['none','work','personal','health','finance'];
+const CAT_LABEL = { none:'None', work:'Work', personal:'Personal', health:'Health', finance:'Finance' };
+
+const pad     = n => String(n).padStart(2,'0');
+const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey= dateKey(new Date());
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+function defaultState(){
+  return {
+    selectedKey: todayKey,
+    calYear: new Date().getFullYear(),
+    calMonth: new Date().getMonth(),
+    tasks: {},
+    filter: 'all',
+    catFilter: 'all',
+    notes: '',
+    goals: [],
+    journal: {},
+    journalDate: todayKey,
+    editingId: null,
+    widgets: {
+      tasks:    { x:0,   y:0,   w:520, collapsed:false },
+      calendar: { x:540, y:0,   w:320, collapsed:false },
+      goals:    { x:540, y:380, w:320, collapsed:false },
+    }
+  };
+}
+
+let S;
+try { S = JSON.parse(localStorage.getItem('babel_v2')||'null') || defaultState(); } catch(e){ S = defaultState(); }
+// patch missing fields
+if (!S.journal)      S.journal = {};
+if (!S.journalDate)  S.journalDate = todayKey;
+if (!S.catFilter)    S.catFilter = 'all';
+if (!S.goals)        S.goals = [];
+if (!S.widgets)      S.widgets = defaultState().widgets;
+['tasks','calendar','goals'].forEach(k => { if (!S.widgets[k]) S.widgets[k] = defaultState().widgets[k]; });
+
+function save(){ try{ localStorage.setItem('babel_v2', JSON.stringify(S)); }catch(e){} }
+
+// ── TASK HELPERS ─────────────────────────────────────────────────────────────
+function getTasks(k)       { return S.tasks[k] || []; }
+function setTasks(k, list) { S.tasks[k]=list; save(); }
+
+function addTask(key, text, time, cat, recurEnd, autoMove){
+  const t = { id: Date.now(), text, done:false, time:time||null, cat:cat||'none', recurEnd:recurEnd||null, autoMove:!!autoMove };
+  const list = getTasks(key); list.push(t); setTasks(key, list);
+  if(recurEnd && recurEnd > key){
+    const [sy,sm,sd]=key.split('-').map(Number);
+    const [ey,em,ed]=recurEnd.split('-').map(Number);
+    let cur = new Date(sy,sm-1,sd+1);
+    const end= new Date(ey,em-1,ed);
+    while(cur<=end){
+      const k2=dateKey(cur);
+      const l2=getTasks(k2);
+      l2.push({...t,id:Date.now()+Math.random(),done:false});
+      setTasks(k2,l2);
+      cur.setDate(cur.getDate()+1);
+    }
+  }
+}
+
+function toggleTask(k,id){ setTasks(k,getTasks(k).map(t=>t.id===id?{...t,done:!t.done}:t)); }
+function deleteTask(k,id){ setTasks(k,getTasks(k).filter(t=>t.id!==id)); }
+function saveEdit(k,id,text,cat,time){ setTasks(k,getTasks(k).map(t=>t.id===id?{...t,text,cat,time:time||null}:t)); S.editingId=null; save(); }
+
+function moveToNext(k,id){
+  const t=getTasks(k).find(x=>x.id===id); if(!t) return;
+  deleteTask(k,id);
+  const [y,m,d]=k.split('-').map(Number);
+  const nk=dateKey(new Date(y,m-1,d+1));
+  const l=getTasks(nk); l.push({...t,id:Date.now(),done:false}); setTasks(nk,l);
+}
+
+function isOverdue(k,t){
+  if(t.done) return false;
+  if(k<todayKey) return true;
+  if(k===todayKey && t.time){
+    const now=new Date(), [h,m]=t.time.split(':').map(Number);
+    return now > new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m);
+  }
+  return false;
+}
+
+function getOverdueDays(){
+  return Object.keys(S.tasks).filter(k=>k<todayKey).sort()
+    .map(k=>({key:k,tasks:getTasks(k).filter(t=>!t.done)}))
+    .filter(o=>o.tasks.length);
+}
+
+function getUpcoming(){
+  const res=[]; const base=new Date(); base.setHours(0,0,0,0);
+  for(let i=1;i<=45&&res.length<5;i++){
+    const d=new Date(base); d.setDate(d.getDate()+i);
+    const k=dateKey(d);
+    const tasks=getTasks(k).filter(t=>!t.done);
+    if(tasks.length) res.push({key:k,label:`${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`,tasks});
+  }
+  return res;
+}
+
+function fmtKey(k){
+  const [y,m,d]=k.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  const long=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dt.getDay()];
+  return { big:`${long}, ${MONTHS[m-1]} ${d}`, sub: k===todayKey?'Today':(y!==new Date().getFullYear()?String(y):''), short:`${MONTHS[m-1].slice(0,3)} ${d}` };
+}
+
+// ── AUTO MOVE ─────────────────────────────────────────────────────────────────
+(function autoMove(){
+  const yesterday=new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yk=dateKey(yesterday);
+  const toMove=getTasks(yk).filter(t=>!t.done&&t.autoMove);
+  toMove.forEach(t=>{ deleteTask(yk,t.id); const l=getTasks(todayKey); l.push({...t,id:Date.now()+Math.random(),done:false}); setTasks(todayKey,l); });
+})();
+
+// ── WIDGET DRAG ──────────────────────────────────────────────────────────────
+// Called AFTER innerHTML is set so .widget-header exists
+function bindDraggable(el, wKey){
+  const header = el.querySelector('.widget-header');
+  if(!header) return;
+  // Remove any old listener by cloning the header
+  const fresh = header.cloneNode(true);
+  header.parentNode.replaceChild(fresh, header);
+
+  let ox=0,oy=0,startX=0,startY=0;
+  fresh.addEventListener('mousedown', e=>{
+    if(e.target.closest('button')) return;
+    e.preventDefault();
+    startX=e.clientX; startY=e.clientY;
+    ox=S.widgets[wKey].x; oy=S.widgets[wKey].y;
+    el.classList.add('dragging');
+
+    function onMove(e){
+      const dx=e.clientX-startX, dy=e.clientY-startY;
+      const nx=Math.max(0,ox+dx), ny=Math.max(0,oy+dy);
+      S.widgets[wKey].x=nx; S.widgets[wKey].y=ny;
+      el.style.left=nx+'px'; el.style.top=ny+'px';
+    }
+    function onUp(){
+      el.classList.remove('dragging');
+      save();
+      document.removeEventListener('mousemove',onMove);
+      document.removeEventListener('mouseup',onUp);
+    }
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+  });
+}
+
+// ── RENDER TASKS WIDGET ──────────────────────────────────────────────────────
+function renderTasksWidget(){
+  const w=S.widgets.tasks;
+  let el=document.getElementById('w-tasks');
+  if(!el){
+    el=document.createElement('div');
+    el.id='w-tasks'; el.className='widget';
+    document.getElementById('planner-canvas').appendChild(el);
+  }
+  el.style.left=w.x+'px'; el.style.top=w.y+'px'; el.style.width=w.w+'px';
+  if(w.collapsed) el.classList.add('collapsed'); else el.classList.remove('collapsed');
+
+  const k=S.selectedKey;
+  const allTasks=getTasks(k);
+  let filtered=allTasks;
+  if(S.filter==='active') filtered=filtered.filter(t=>!t.done);
+  if(S.filter==='done')   filtered=filtered.filter(t=>t.done);
+  if(S.catFilter!=='all') filtered=filtered.filter(t=>t.cat===S.catFilter);
+
+  const done=allTasks.filter(t=>t.done).length;
+  const total=allTasks.length;
+  const pct=total?Math.round(done/total*100):0;
+  const {big,sub}=fmtKey(k);
+  const overDays=getOverdueDays();
+
+  const catSelKey = 'addCat_'+k;
+  const addCat = window._addCat || 'none';
+
+  el.innerHTML=`
+    <div class="widget-header">
+      <div class="widget-title"><div class="dot"></div>Tasks</div>
+      <button class="widget-collapse" data-wkey="tasks">${w.collapsed?'+':'−'}</button>
+    </div>
+    <div class="widget-body">
+      <div class="storage-info">
+        <strong>🔒 Local Storage</strong> — your Progrex data stays on this device only. Export coming soon.
+      </div>
+      <div class="date-header">
+        <span class="date-big">${big}</span>
+        ${sub?`<span class="date-sub">${sub}</span>`:''}
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">tasks</div></div>
+        <div class="stat"><div class="stat-num">${done}</div><div class="stat-label">done</div></div>
+        <div class="stat"><div class="stat-num">${pct}%</div><div class="stat-label">complete</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+
+      <button class="add-task-trigger" id="add-trigger">+ Add a task…</button>
+
+      <div class="add-task-dropdown" id="add-dropdown">
+        <div class="add-field">
+          <div class="add-label">Task name</div>
+          <input class="add-input" type="text" id="add-text" placeholder="What needs to be done?"/>
+        </div>
+        <div class="add-row-inline">
+          <div class="add-field">
+            <div class="add-label">Time (optional)</div>
+            <select class="add-input" id="add-time">
+              <option value="">— No time —</option>
+              ${(()=>{
+                const opts=[];
+                for(let h=0;h<24;h++){
+                  for(let m=0;m<60;m+=30){
+                    const hh=String(h).padStart(2,'0');
+                    const mm=String(m).padStart(2,'0');
+                    const val=`${hh}:${mm}`;
+                    const ampm=h<12?'AM':'PM';
+                    const h12=h===0?12:h>12?h-12:h;
+                    const label=`${h12}:${mm} ${ampm}`;
+                    opts.push(`<option value="${val}">${label}</option>`);
+                  }
+                }
+                return opts.join('');
+              })()}
+            </select>
+          </div>
+        </div>
+        <div class="add-field">
+          <div class="add-label">Category</div>
+          <div class="cat-picker">
+            ${CATS.map(c=>`<button class="cat-opt${addCat===c?' sel-'+c:''}" data-cat="${c}">${CAT_LABEL[c]}</button>`).join('')}
+          </div>
+        </div>
+        <label class="recur-toggle"><input type="checkbox" id="recur-chk"/> Repeat across multiple days</label>
+        <div class="recur-extra" id="recur-extra">
+          <div class="add-row-inline">
+            <div class="add-field">
+              <div class="add-label">Repeat until</div>
+              <input class="add-input" type="date" id="add-recur-end"/>
+            </div>
+          </div>
+          <label class="recur-toggle" style="margin-top:6px;"><input type="checkbox" id="add-automove"/> Auto-move to next day if incomplete</label>
+        </div>
+        <div class="add-actions">
+          <button class="btn primary" id="add-submit">Add Task</button>
+          <button class="btn ghost" id="add-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <button class="chip${S.filter==='all'?' active':''}" data-f="all">All</button>
+        <button class="chip${S.filter==='active'?' active':''}" data-f="active">Active</button>
+        <button class="chip${S.filter==='done'?' active':''}" data-f="done">Done</button>
+        <span style="display:inline-block;width:1px;background:var(--border);margin:0 3px;height:16px;vertical-align:middle;"></span>
+        <button class="chip${S.catFilter==='all'?' active':''}" data-cf="all">All</button>
+        ${CATS.filter(c=>c!=='none').map(c=>`<button class="chip c-${c}${S.catFilter===c?' active':''}" data-cf="${c}">${CAT_LABEL[c]}</button>`).join('')}
+      </div>
+
+      <div class="task-list">
+        ${filtered.length===0?`<div class="empty">${total===0?'No tasks yet':'Nothing matches'}</div>`:filtered.map(t=>taskHTML(t,k)).join('')}
+      </div>
+
+      ${overDays.length?`
+        <div class="overdue-section">
+          <div class="section-label">Incomplete from Previous Days</div>
+          ${overDays.map(o=>{
+            const {short}=fmtKey(o.key);
+            return `<div class="overdue-date">${short}</div>${o.tasks.map(t=>taskHTML(t,o.key,true)).join('')}`;
+          }).join('')}
+        </div>`:``}
+    </div>`;
+
+  // Bind drag AFTER innerHTML is set
+  bindDraggable(el, 'tasks');
+
+  // Add task dropdown
+  window._addCat = window._addCat || 'none';
+  const trigger  = el.querySelector('#add-trigger');
+  const dropdown = el.querySelector('#add-dropdown');
+  const recurChk = el.querySelector('#recur-chk');
+  const recurExt = el.querySelector('#recur-extra');
+  trigger.onclick = ()=>{ dropdown.classList.toggle('open'); if(dropdown.classList.contains('open')) el.querySelector('#add-text').focus(); };
+  el.querySelector('#add-cancel').onclick = ()=>{ dropdown.classList.remove('open'); };
+  recurChk.onchange = ()=>{ recurExt.classList.toggle('open',recurChk.checked); };
+  el.querySelector('#add-text').onkeydown = e=>{ if(e.key==='Enter') doAdd(); };
+  el.querySelector('#add-submit').onclick = doAdd;
+
+  el.querySelectorAll('.cat-opt').forEach(b=>{
+    b.onclick=()=>{ window._addCat=b.dataset.cat; renderTasksWidget(); dropdown.classList.add('open'); };
+  });
+
+  // Filters
+  el.querySelectorAll('[data-f]').forEach(b=>{  b.onclick=()=>{ S.filter=b.dataset.f; save(); renderTasksWidget(); }; });
+  el.querySelectorAll('[data-cf]').forEach(b=>{ b.onclick=()=>{ S.catFilter=b.dataset.cf; save(); renderTasksWidget(); }; });
+
+  // Task events
+  bindTaskEvents(el, k);
+
+  // Collapse
+  el.querySelector('.widget-collapse').onclick=()=>{ S.widgets.tasks.collapsed=!S.widgets.tasks.collapsed; save(); renderTasksWidget(); };
+}
+
+function taskHTML(t, k, isOD=false){
+  const od=isOD||isOverdue(k,t);
+  if(S.editingId===t.id){
+    return `<div class="task-item cat-${t.cat}" data-id="${t.id}" data-key="${k}" style="cursor:default;">
+      <div class="task-edit-wrap">
+        <input class="edit-text" type="text" value="${esc(t.text)}" data-id="${t.id}" data-key="${k}"/>
+        <select class="edit-cat" data-id="${t.id}">
+          ${CATS.map(c=>`<option value="${c}"${t.cat===c?' selected':''}>${CAT_LABEL[c]}</option>`).join('')}
+        </select>
+        <input class="edit-time" type="time" value="${t.time||''}" data-id="${t.id}"/>
+        <button class="btn primary save-edit" data-id="${t.id}" data-key="${k}" style="padding:4px 10px;font-size:12px;">Save</button>
+        <button class="btn ghost cancel-edit" style="padding:4px 10px;font-size:12px;">Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="task-item cat-${t.cat}${t.done?' done':''}${od&&!t.done?' is-overdue':''}" data-id="${t.id}" data-key="${k}">
+    <div class="task-check">${t.done?'<svg class="chk-svg" viewBox="0 0 12 12"><polyline points="1,6 4,10 11,2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>':''}</div>
+    <div class="task-body">
+      <div class="task-name">${esc(t.text)}</div>
+      <div class="task-meta">
+        ${t.cat!=='none'?`<span class="task-badge badge-${t.cat}">${CAT_LABEL[t.cat]}</span>`:''}
+        ${t.time?`<span class="task-time-lbl">${t.time}</span>`:''}
+        ${t.recurEnd?`<span class="task-time-lbl">↻ until ${t.recurEnd}</span>`:''}
+        ${t.autoMove?`<span class="task-time-lbl">→ auto-move</span>`:''}
+      </div>
+    </div>
+    <div class="task-acts">
+      <button class="task-act-btn edit-btn" data-id="${t.id}" title="Edit">✎</button>
+      ${isOD?`<button class="task-act-btn move-btn" data-id="${t.id}" data-key="${k}" title="Move to today">→</button>`:''}
+      <button class="task-act-btn del del-btn" data-id="${t.id}" data-key="${k}" title="Delete">✕</button>
+    </div>
+  </div>`;
+}
+
+function bindTaskEvents(el, currentKey){
+  el.querySelectorAll('.task-item[data-id]').forEach(item=>{
+    item.onclick=e=>{
+      if(e.target.closest('.task-acts')||e.target.closest('.task-edit-wrap')) return;
+      const k=item.dataset.key||currentKey;
+      toggleTask(k,Number(item.dataset.id));
+      renderTasksWidget(); renderCalWidget();
+    };
+  });
+  el.querySelectorAll('.edit-btn').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); S.editingId=Number(b.dataset.id); save(); renderTasksWidget(); }; });
+  el.querySelectorAll('.save-edit').forEach(b=>{
+    b.onclick=e=>{ e.stopPropagation(); const row=b.closest('.task-item');
+      saveEdit(b.dataset.key||currentKey,Number(b.dataset.id),row.querySelector('.edit-text').value.trim(),row.querySelector('.edit-cat').value,row.querySelector('.edit-time').value);
+      renderTasksWidget();
+    };
+  });
+  el.querySelectorAll('.cancel-edit').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); S.editingId=null; save(); renderTasksWidget(); }; });
+  el.querySelectorAll('.del-btn').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); deleteTask(b.dataset.key||currentKey,Number(b.dataset.id)); renderTasksWidget(); renderCalWidget(); }; });
+  el.querySelectorAll('.move-btn').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); moveToNext(b.dataset.key,Number(b.dataset.id)); renderTasksWidget(); renderCalWidget(); }; });
+}
+
+function doAdd(){
+  const text=document.getElementById('add-text')?.value.trim(); if(!text) return;
+  const time=document.getElementById('add-time')?.value||null;
+  const cat=window._addCat||'none';
+  const recurChk=document.getElementById('recur-chk')?.checked;
+  const recurEnd=recurChk?(document.getElementById('add-recur-end')?.value||null):null;
+  const autoMove=document.getElementById('add-automove')?.checked||false;
+  addTask(S.selectedKey,text,time,cat,recurEnd,autoMove);
+  window._addCat='none';
+  renderTasksWidget(); renderCalWidget();
+}
+
+// ── RENDER CALENDAR WIDGET ───────────────────────────────────────────────────
+function renderCalWidget(){
+  const w=S.widgets.calendar;
+  let el=document.getElementById('w-calendar');
+  if(!el){
+    el=document.createElement('div');
+    el.id='w-calendar'; el.className='widget';
+    document.getElementById('planner-canvas').appendChild(el);
+  }
+  el.style.left=w.x+'px'; el.style.top=w.y+'px'; el.style.width=w.w+'px';
+  if(w.collapsed) el.classList.add('collapsed'); else el.classList.remove('collapsed');
+
+  const dim=new Date(S.calYear,S.calMonth+1,0).getDate();
+  const fdow=new Date(S.calYear,S.calMonth,1).getDay();
+  const prevD=new Date(S.calYear,S.calMonth,0).getDate();
+  let cells='';
+  for(let i=0;i<fdow;i++){
+    const d=prevD-fdow+1+i, k=dateKey(new Date(S.calYear,S.calMonth-1,d));
+    const ht=getTasks(k).length>0, hod=getTasks(k).some(t=>isOverdue(k,t));
+    cells+=`<div class="cal-day other${k===S.selectedKey?' selected':''}${ht?' has-tasks':''}${hod?' has-overdue':''}" data-key="${k}">${d}</div>`;
+  }
+  for(let d=1;d<=dim;d++){
+    const k=dateKey(new Date(S.calYear,S.calMonth,d));
+    const ht=getTasks(k).length>0, hod=getTasks(k).some(t=>isOverdue(k,t));
+    cells+=`<div class="cal-day${k===todayKey?' is-today':''}${k===S.selectedKey?' selected':''}${ht?' has-tasks':''}${hod?' has-overdue':''}" data-key="${k}">${d}</div>`;
+  }
+  const trail=42-fdow-dim;
+  for(let d=1;d<=trail;d++){
+    const k=dateKey(new Date(S.calYear,S.calMonth+1,d));
+    const ht=getTasks(k).length>0, hod=getTasks(k).some(t=>isOverdue(k,t));
+    cells+=`<div class="cal-day other${k===S.selectedKey?' selected':''}${ht?' has-tasks':''}${hod?' has-overdue':''}" data-key="${k}">${d}</div>`;
+  }
+
+  const upcoming=getUpcoming();
+
+  el.innerHTML=`
+    <div class="widget-header">
+      <div class="widget-title"><div class="dot"></div>Calendar</div>
+      <button class="widget-collapse" data-wkey="calendar">${w.collapsed?'+':'−'}</button>
+    </div>
+    <div class="widget-body">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="cal-prev">‹</button>
+        <span class="cal-month-lbl">${MONTHS[S.calMonth]} ${S.calYear}</span>
+        <button class="cal-nav-btn" id="cal-next">›</button>
+      </div>
+      <div class="cal-grid">
+        ${DAYS.map(d=>`<div class="cal-day-name">${d[0]}</div>`).join('')}
+        ${cells}
+      </div>
+      ${upcoming.length?`
+        <div class="upcoming">
+          <div class="upcoming-lbl">Upcoming</div>
+          ${upcoming.map(u=>`
+            <div class="upcoming-item" data-key="${u.key}">
+              <div class="upcoming-dot${u.tasks.some(t=>isOverdue(u.key,t))?' od':''}"></div>
+              <span class="upcoming-dt">${u.label}</span>
+              <span class="upcoming-txt">${u.tasks.length} task${u.tasks.length>1?'s':''}: ${u.tasks.map(t=>esc(t.text)).join(', ')}</span>
+            </div>`).join('')}
+        </div>`:``}
+    </div>`;
+
+  bindDraggable(el, 'calendar');
+  el.querySelector('#cal-prev').onclick=()=>{ if(S.calMonth===0){S.calMonth=11;S.calYear--;}else S.calMonth--; save(); renderCalWidget(); };
+  el.querySelector('#cal-next').onclick=()=>{ if(S.calMonth===11){S.calMonth=0;S.calYear++;}else S.calMonth++; save(); renderCalWidget(); };
+  el.querySelectorAll('.cal-day[data-key]').forEach(d=>{ d.onclick=()=>{ S.selectedKey=d.dataset.key; save(); renderTasksWidget(); renderCalWidget(); }; });
+  el.querySelectorAll('.upcoming-item[data-key]').forEach(u=>{
+    u.onclick=()=>{ const [y,m,d]=u.dataset.key.split('-').map(Number); S.calYear=y;S.calMonth=m-1;S.selectedKey=u.dataset.key; save(); renderTasksWidget(); renderCalWidget(); };
+  });
+  el.querySelector('.widget-collapse').onclick=()=>{ S.widgets.calendar.collapsed=!S.widgets.calendar.collapsed; save(); renderCalWidget(); };
+}
+
+// ── RENDER GOALS WIDGET ──────────────────────────────────────────────────────
+function renderGoalsWidget(){
+  const w=S.widgets.goals;
+  let el=document.getElementById('w-goals');
+  if(!el){
+    el=document.createElement('div');
+    el.id='w-goals'; el.className='widget';
+    document.getElementById('planner-canvas').appendChild(el);
+  }
+  el.style.left=w.x+'px'; el.style.top=w.y+'px'; el.style.width=w.w+'px';
+  if(w.collapsed) el.classList.add('collapsed'); else el.classList.remove('collapsed');
+
+  el.innerHTML=`
+    <div class="widget-header">
+      <div class="widget-title"><div class="dot"></div>Goals</div>
+      <button class="widget-collapse" data-wkey="goals">${w.collapsed?'+':'−'}</button>
+    </div>
+    <div class="widget-body">
+      <div class="goal-add-row">
+        <input type="text" id="goal-input" placeholder="Add a goal…"/>
+        <button class="btn primary" id="goal-add-btn">Add</button>
+      </div>
+      <div id="goal-list">
+        ${S.goals.length===0?'<div class="empty">No goals yet</div>':S.goals.map(g=>`
+          <div class="goal-item${g.done?' done':''}" data-gid="${g.id}">
+            <div class="goal-check">${g.done?'<svg class="chk-svg" viewBox="0 0 12 12"><polyline points="1,6 4,10 11,2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>':''}</div>
+            <span class="goal-txt">${esc(g.text)}</span>
+            <button class="goal-del" data-gdel="${g.id}">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  bindDraggable(el, 'goals');
+  el.querySelector('#goal-add-btn').onclick=()=>doAddGoal();
+  el.querySelector('#goal-input').onkeydown=e=>{ if(e.key==='Enter') doAddGoal(); };
+  el.querySelectorAll('.goal-item[data-gid]').forEach(g=>{
+    g.onclick=e=>{ if(e.target.dataset.gdel) return; S.goals=S.goals.map(x=>x.id===Number(g.dataset.gid)?{...x,done:!x.done}:x); save(); renderGoalsWidget(); };
+  });
+  el.querySelectorAll('[data-gdel]').forEach(b=>{ b.onclick=e=>{ e.stopPropagation(); S.goals=S.goals.filter(x=>x.id!==Number(b.dataset.gdel)); save(); renderGoalsWidget(); }; });
+  el.querySelector('.widget-collapse').onclick=()=>{ S.widgets.goals.collapsed=!S.widgets.goals.collapsed; save(); renderGoalsWidget(); };
+}
+
+function doAddGoal(){
+  const inp=document.getElementById('goal-input'); if(!inp) return;
+  const text=inp.value.trim(); if(!text) return;
+  S.goals.push({id:Date.now(),text,done:false}); save();
+  renderGoalsWidget();
+}
+
+// ── DATA CLEANUP (12-month window) ───────────────────────────────────────────
+// Keeps 6 months back + current month + 5 months forward, deletes the rest
+function pruneOldData(){
+  const now = new Date();
+  const cutoffPast   = new Date(now.getFullYear(), now.getMonth()-6, 1);
+  const cutoffFuture = new Date(now.getFullYear(), now.getMonth()+6, 1);
+  const pastKey   = dateKey(cutoffPast);
+  const futureKey = dateKey(cutoffFuture);
+  let pruned = false;
+  Object.keys(S.tasks).forEach(k => {
+    if(k < pastKey || k > futureKey){
+      delete S.tasks[k];
+      pruned = true;
+    }
+  });
+  if(pruned) save();
+}
+
+// ── NOTES ────────────────────────────────────────────────────────────────────
+const NOTES_LIMIT = 10000;
+function renderNotes(){
+  const ta      = document.getElementById('notes-ta');    if(!ta) return;
+  const counter = document.getElementById('notes-count'); if(!counter) return;
+  ta.value = S.notes;
+  counter.textContent = `${S.notes.length} / ${NOTES_LIMIT.toLocaleString()} characters`;
+  counter.style.color = S.notes.length > NOTES_LIMIT * 0.9 ? 'var(--danger)' : 'var(--text3)';
+  ta.oninput = () => {
+    if(ta.value.length > NOTES_LIMIT){
+      ta.value = ta.value.slice(0, NOTES_LIMIT);
+    }
+    S.notes = ta.value;
+    save();
+    counter.textContent = `${S.notes.length} / ${NOTES_LIMIT.toLocaleString()} characters`;
+    counter.style.color = S.notes.length > NOTES_LIMIT * 0.9 ? 'var(--danger)' : 'var(--text3)';
+  };
+}
+
+// ── JOURNAL ──────────────────────────────────────────────────────────────────
+function renderJournal(){
+  const dateInput=document.getElementById('j-date');
+  const ta=document.getElementById('j-text'); if(!dateInput||!ta) return;
+  dateInput.value=S.journalDate;
+  ta.value=S.journal[S.journalDate]||'';
+  let tmr;
+  ta.oninput=()=>{ S.journal[S.journalDate]=ta.value; save(); document.getElementById('j-status').textContent='Saving…'; clearTimeout(tmr); tmr=setTimeout(()=>{ document.getElementById('j-status').textContent='Auto-saved'; },700); };
+  dateInput.onchange=()=>{ S.journalDate=dateInput.value; save(); ta.value=S.journal[S.journalDate]||''; };
+  document.getElementById('j-prev').onclick=()=>{ const [y,m,d]=S.journalDate.split('-').map(Number); S.journalDate=dateKey(new Date(y,m-1,d-1)); save(); renderJournal(); };
+  document.getElementById('j-next').onclick=()=>{ const [y,m,d]=S.journalDate.split('-').map(Number); S.journalDate=dateKey(new Date(y,m-1,d+1)); save(); renderJournal(); };
+}
+
+// ── PAGE NAV ─────────────────────────────────────────────────────────────────
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.onclick=()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-'+tab.dataset.page).classList.add('active');
+    if(tab.dataset.page==='notes')   renderNotes();
+    if(tab.dataset.page==='journal') renderJournal();
+  };
+});
+
+// ── DONATION ─────────────────────────────────────────────────────────────────
+let selAmt=5;
+document.getElementById('donate-trigger').onclick=()=>{ window.open('https://www.gofundme.com/f/help-fund-a-college-students-dreams','_blank'); };
+document.getElementById('donate-close').onclick=()=>document.getElementById('donate-modal').classList.remove('open');
+document.getElementById('donate-modal').onclick=e=>{ if(e.target===document.getElementById('donate-modal')) document.getElementById('donate-modal').classList.remove('open'); };
+document.querySelectorAll('.amt-btn').forEach(b=>{ b.onclick=()=>{ document.querySelectorAll('.amt-btn').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); selAmt=Number(b.dataset.amt); }; });
+document.getElementById('donate-go').onclick=()=>{ window.open('https://www.gofundme.com/f/help-fund-a-college-students-dreams','_blank'); document.getElementById('donate-modal').classList.remove('open'); };
+
+// ── MIGRATE OLD DATA ──────────────────────────────────────────────────────────
+// Runs once if old plannerTasks/plannerNotes/plannerGoals keys exist but
+// babel_v2 has no tasks yet (meaning user hasn't added anything to new version).
+(function migrateOldData(){
+  const alreadyMigrated = localStorage.getItem('progrex_migrated');
+  if(alreadyMigrated) return;
+
+  let migrated = false;
+
+  // Tasks — old key: plannerTasks  (same structure, just different key)
+  try {
+    const oldTasks = JSON.parse(localStorage.getItem('plannerTasks') || 'null');
+    if(oldTasks && typeof oldTasks === 'object' && Object.keys(oldTasks).length > 0){
+      // Merge into S.tasks (don't overwrite anything already in new state)
+      Object.keys(oldTasks).forEach(dateKey => {
+        if(!S.tasks[dateKey]) {
+          // Old tasks have no cat/time fields — add defaults so new app works
+          S.tasks[dateKey] = (oldTasks[dateKey] || []).map(t => ({
+            id:       t.id || Date.now() + Math.random(),
+            text:     t.text || '',
+            done:     t.done || false,
+            time:     t.time || null,
+            cat:      t.cat  || 'none',
+            recurEnd: t.recurEnd || null,
+            autoMove: t.autoMove || false,
+          }));
+        }
+      });
+      migrated = true;
+    }
+  } catch(e) { console.warn('Migration: could not read plannerTasks', e); }
+
+  // Notes — old key: plannerNotes
+  try {
+    const oldNotes = localStorage.getItem('plannerNotes');
+    if(oldNotes && !S.notes) { S.notes = oldNotes; migrated = true; }
+  } catch(e) {}
+
+  // Goals — old key: plannerGoals
+  try {
+    const oldGoals = JSON.parse(localStorage.getItem('plannerGoals') || 'null');
+    if(oldGoals && Array.isArray(oldGoals) && oldGoals.length > 0 && S.goals.length === 0){
+      S.goals = oldGoals.map(g => ({
+        id:   g.id   || Date.now() + Math.random(),
+        text: g.text || '',
+        done: g.done || false,
+      }));
+      migrated = true;
+    }
+  } catch(e) {}
+
+  if(migrated){
+    save();
+    localStorage.setItem('progrex_migrated', '1');
+    console.log('Progrex: migrated data from old version ✓');
+  }
+})();
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+pruneOldData();
+renderTasksWidget();
+renderCalWidget();
+renderGoalsWidget();
+</script>
+</body>
+</html>
