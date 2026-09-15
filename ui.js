@@ -515,6 +515,24 @@ function renderSettingsBody(){
       <div class="new-cat-form"><input type="text" id="scat-name" placeholder="Category name..."/><input type="color" class="color-pick" id="scat-color" value="#8b5cf6"/><button class="btn primary sm" id="scat-add">+ Add</button></div>
     </div>
     <div class="settings-section">
+      <h3>Calendar Feed (iCal)</h3>
+      <p>Subscribe to your tasks in Canvas, Google Calendar, or Apple Calendar. Copy the link below and paste it into your calendar app as a new subscription.</p>
+      <div id="cal-feed-section">
+        <button class="btn" id="gen-cal-token-btn">Generate Calendar Link</button>
+        <div id="cal-feed-url-wrap" style="display:none;margin-top:10px;">
+          <div style="display:flex;gap:6px;">
+            <input class="inp" type="text" id="cal-feed-url" readonly style="font-size:12px;background:var(--bg3);color:var(--text2);"/>
+            <button class="btn sm" id="copy-cal-url">Copy</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;">
+            In Canvas: Calendar &#8594; Import &#8594; Paste this URL<br/>
+            In Google Calendar: Other calendars + &#8594; From URL &#8594; Paste this URL
+          </div>
+          <button class="btn danger sm" id="revoke-cal-token" style="margin-top:10px;">Revoke Link</button>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
       <h3>Data</h3>
       <p>Your data syncs to Supabase automatically. Export a JSON backup anytime.</p>
       <div class="export-row">
@@ -535,4 +553,51 @@ function renderSettingsBody(){
   el.querySelector('#import-file').onchange=e=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{Object.assign(S,JSON.parse(ev.target.result));saveLocal();location.reload();}catch(err){alert('Invalid backup file.');}};reader.readAsText(file);};
   el.querySelector('#reset-widgets-btn').onclick=()=>{if(!confirm('Reset widget positions?'))return;S.widgets=defaultState().widgets;saveWidgets();renderTasksWidget();renderCalWidget();renderGoalsWidget();closeSettings();};
   el.querySelector('#clear-all-btn').onclick=()=>{if(!confirm('Delete ALL data? This cannot be undone.'))return;if(!confirm('Are you really sure?'))return;localStorage.clear();if(S.userId){sb.from('tasks').delete().eq('user_id',S.userId);sb.from('goals').delete().eq('user_id',S.userId);sb.from('notes').delete().eq('user_id',S.userId);sb.from('journal').delete().eq('user_id',S.userId);sb.from('categories').delete().eq('user_id',S.userId);}location.reload();};
+
+  // ── CALENDAR FEED ──
+  setupCalFeedSection();
+}
+
+function setupCalFeedSection(){
+  const genBtn   = document.getElementById('gen-cal-token-btn');
+  const urlWrap  = document.getElementById('cal-feed-url-wrap');
+  const urlInp   = document.getElementById('cal-feed-url');
+  const copyBtn  = document.getElementById('copy-cal-url');
+  const revokeBtn= document.getElementById('revoke-cal-token');
+  if(!genBtn||!S.userId) return;
+
+  // Check if token already exists
+  sb.from('calendar_tokens').select('token').eq('user_id', S.userId).single().then(({data})=>{
+    if(data?.token) showCalUrl(data.token);
+  });
+
+  genBtn.onclick = async ()=>{
+    genBtn.textContent = 'Generating...';genBtn.disabled=true;
+    // Upsert a token for this user
+    const {data,error} = await sb.from('calendar_tokens')
+      .upsert({user_id:S.userId},{onConflict:'user_id'})
+      .select('token').single();
+    if(error||!data){genBtn.textContent='Generate Calendar Link';genBtn.disabled=false;return;}
+    showCalUrl(data.token);
+    genBtn.textContent='Generate Calendar Link';genBtn.disabled=false;
+  };
+
+  function showCalUrl(token){
+    const base = window.location.origin;
+    const url  = `${base}/api/calendar/${token}`;
+    if(urlInp) urlInp.value = url;
+    if(urlWrap) urlWrap.style.display='block';
+    if(genBtn) genBtn.style.display='none';
+  }
+
+  if(copyBtn) copyBtn.onclick=()=>{
+    if(urlInp){navigator.clipboard.writeText(urlInp.value).then(()=>{copyBtn.textContent='Copied!';setTimeout(()=>{copyBtn.textContent='Copy';},2000);});}
+  };
+
+  if(revokeBtn) revokeBtn.onclick=async()=>{
+    if(!confirm('Revoke this link? Your calendar subscriptions will stop working.')) return;
+    await sb.from('calendar_tokens').delete().eq('user_id',S.userId);
+    if(urlWrap) urlWrap.style.display='none';
+    if(genBtn){genBtn.style.display='block';genBtn.textContent='Generate New Calendar Link';}
+  };
 }
