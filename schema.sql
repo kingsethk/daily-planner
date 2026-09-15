@@ -1,7 +1,10 @@
--- Run this entire file in your Supabase SQL Editor (Dashboard -> SQL Editor -> New Query)
--- It creates all tables with Row Level Security so users only see their own data.
+-- =========================================================
+-- Progrex — Full Schema
+-- Run this in Supabase SQL Editor → New Query
+-- Safe to run multiple times (uses IF NOT EXISTS + DROP POLICY IF EXISTS)
+-- =========================================================
 
--- CATEGORIES
+-- ── CATEGORIES ────────────────────────────────────────────
 create table if not exists categories (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -10,9 +13,11 @@ create table if not exists categories (
   created_at timestamptz default now()
 );
 alter table categories enable row level security;
-create policy "Users own categories" on categories for all using (auth.uid() = user_id);
+drop policy if exists "Users own categories" on categories;
+create policy "Users own categories" on categories
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- TASKS
+-- ── TASKS ─────────────────────────────────────────────────
 create table if not exists tasks (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -27,9 +32,11 @@ create table if not exists tasks (
   updated_at timestamptz default now()
 );
 alter table tasks enable row level security;
-create policy "Users own tasks" on tasks for all using (auth.uid() = user_id);
+drop policy if exists "Users own tasks" on tasks;
+create policy "Users own tasks" on tasks
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- GOALS
+-- ── GOALS ─────────────────────────────────────────────────
 create table if not exists goals (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -39,9 +46,11 @@ create table if not exists goals (
   created_at timestamptz default now()
 );
 alter table goals enable row level security;
-create policy "Users own goals" on goals for all using (auth.uid() = user_id);
+drop policy if exists "Users own goals" on goals;
+create policy "Users own goals" on goals
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- SUBTASKS
+-- ── SUBTASKS ──────────────────────────────────────────────
 create table if not exists subtasks (
   id uuid primary key default gen_random_uuid(),
   goal_id uuid references goals(id) on delete cascade not null,
@@ -51,9 +60,11 @@ create table if not exists subtasks (
   created_at timestamptz default now()
 );
 alter table subtasks enable row level security;
-create policy "Users own subtasks" on subtasks for all using (auth.uid() = user_id);
+drop policy if exists "Users own subtasks" on subtasks;
+create policy "Users own subtasks" on subtasks
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- NOTE GROUPS
+-- ── NOTE GROUPS ───────────────────────────────────────────
 create table if not exists note_groups (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -61,9 +72,11 @@ create table if not exists note_groups (
   created_at timestamptz default now()
 );
 alter table note_groups enable row level security;
-create policy "Users own note_groups" on note_groups for all using (auth.uid() = user_id);
+drop policy if exists "Users own note_groups" on note_groups;
+create policy "Users own note_groups" on note_groups
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- NOTES
+-- ── NOTES ─────────────────────────────────────────────────
 create table if not exists notes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -74,9 +87,11 @@ create table if not exists notes (
   created_at timestamptz default now()
 );
 alter table notes enable row level security;
-create policy "Users own notes" on notes for all using (auth.uid() = user_id);
+drop policy if exists "Users own notes" on notes;
+create policy "Users own notes" on notes
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- JOURNAL
+-- ── JOURNAL ───────────────────────────────────────────────
 create table if not exists journal (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -86,9 +101,11 @@ create table if not exists journal (
   unique(user_id, date)
 );
 alter table journal enable row level security;
-create policy "Users own journal" on journal for all using (auth.uid() = user_id);
+drop policy if exists "Users own journal" on journal;
+create policy "Users own journal" on journal
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- WIDGET LAYOUT (saves widget positions per user)
+-- ── WIDGET LAYOUTS ────────────────────────────────────────
 create table if not exists widget_layouts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null unique,
@@ -96,4 +113,6 @@ create table if not exists widget_layouts (
   updated_at timestamptz default now()
 );
 alter table widget_layouts enable row level security;
-create policy "Users own widget_layouts" on widget_layouts for all using (auth.uid() = user_id);
+drop policy if exists "Users own widget_layouts" on widget_layouts;
+create policy "Users own widget_layouts" on widget_layouts
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

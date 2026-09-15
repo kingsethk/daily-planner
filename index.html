@@ -12,48 +12,96 @@
 
 <!-- ── AUTH SCREEN ── -->
 <div id="auth-screen" style="display:flex;">
-  <div class="auth-card">
-    <div class="auth-logo">progrex<span>.</span></div>
-    <div class="auth-title" id="auth-title">Welcome back</div>
-    <div class="auth-subtitle" id="auth-subtitle">Sign in to your Progrex account</div>
 
-    <!-- Login -->
-    <div id="auth-login-form">
-      <div class="auth-field"><div class="auth-label">Email</div><input class="auth-inp" type="email" id="auth-email" placeholder="you@example.com"/></div>
-      <div class="auth-field"><div class="auth-label">Password</div><input class="auth-inp" type="password" id="auth-pass" placeholder="Your password"/></div>
-      <button class="auth-btn" id="auth-login-btn">Sign In</button>
-      <div class="auth-divider">or</div>
-      <div class="auth-links">
-        <button class="auth-link" id="go-signup">Create account</button>
-        <button class="auth-link" id="go-magic">Magic link</button>
+  <!-- Left panel — branding -->
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-brand-logo">progrex<span>.</span></div>
+      <div class="auth-brand-tagline">Stay organized.<br/>Stay ahead.</div>
+    </div>
+    <div class="auth-features">
+      <div class="auth-feature"><div class="auth-feature-icon">&#9632;</div><div><div class="auth-feature-title">Daily Planner</div><div class="auth-feature-desc">Tasks, goals, and calendar in one place</div></div></div>
+      <div class="auth-feature"><div class="auth-feature-icon">&#9632;</div><div><div class="auth-feature-title">Cloud Sync</div><div class="auth-feature-desc">Access your data from any device</div></div></div>
+      <div class="auth-feature"><div class="auth-feature-icon">&#9632;</div><div><div class="auth-feature-title">Notes & Journal</div><div class="auth-feature-desc">Rich text notes with groups and search</div></div></div>
+    </div>
+  </div>
+
+  <!-- Right panel — forms -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <div class="auth-title" id="auth-title">Welcome back</div>
+        <div class="auth-subtitle" id="auth-subtitle">Sign in to your Progrex account</div>
       </div>
-    </div>
 
-    <!-- Sign Up -->
-    <div id="auth-signup-form" style="display:none;">
-      <div class="auth-field"><div class="auth-label">Email</div><input class="auth-inp" type="email" id="auth-email-2" placeholder="you@example.com"/></div>
-      <div class="auth-field"><div class="auth-label">Password</div><input class="auth-inp" type="password" id="auth-pass-2" placeholder="At least 6 characters"/></div>
-      <div class="auth-field"><div class="auth-label">Confirm password</div><input class="auth-inp" type="password" id="auth-pass-conf" placeholder="Same password again"/></div>
-      <button class="auth-btn" id="auth-signup-btn">Create Account</button>
-      <div class="auth-links"><button class="auth-link" id="go-login">Back to sign in</button></div>
-    </div>
+      <!-- Login -->
+      <div id="auth-login-form">
+        <div class="auth-field">
+          <div class="auth-label">Email address</div>
+          <input class="auth-inp" type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Password</div>
+          <input class="auth-inp" type="password" id="auth-pass" placeholder="Your password" autocomplete="current-password"/>
+        </div>
+        <button class="auth-btn" id="auth-login-btn">Sign In</button>
+        <div class="auth-divider"><span>or continue with</span></div>
+        <button class="auth-btn-outline" id="go-magic">&#9993; Send me a magic link</button>
+        <div class="auth-footer-links">
+          Don't have an account? <button class="auth-link" id="go-signup">Create one free</button>
+        </div>
+      </div>
 
-    <!-- Magic Link -->
-    <div id="auth-magic-form" style="display:none;">
-      <div class="auth-field"><div class="auth-label">Email</div><input class="auth-inp" type="email" id="auth-email-magic" placeholder="you@example.com"/></div>
-      <button class="auth-btn" id="auth-magic-btn">Send Magic Link</button>
-      <div class="auth-links"><button class="auth-link" id="go-login-2">Back to sign in</button></div>
-    </div>
+      <!-- Sign Up -->
+      <div id="auth-signup-form" style="display:none;">
+        <div class="auth-field">
+          <div class="auth-label">Email address</div>
+          <input class="auth-inp" type="email" id="auth-email-2" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Password</div>
+          <input class="auth-inp" type="password" id="auth-pass-2" placeholder="At least 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Confirm password</div>
+          <input class="auth-inp" type="password" id="auth-pass-conf" placeholder="Same password again" autocomplete="new-password"/>
+        </div>
+        <button class="auth-btn" id="auth-signup-btn">Create Account</button>
+        <div class="auth-footer-links">
+          Already have an account? <button class="auth-link" id="go-login">Sign in</button>
+        </div>
+      </div>
 
-    <!-- Password Reset -->
-    <div id="auth-reset-form" style="display:none;">
-      <div class="auth-field"><div class="auth-label">New Password</div><input class="auth-inp" type="password" id="auth-new-pass" placeholder="New password"/></div>
-      <div class="auth-field"><div class="auth-label">Confirm</div><input class="auth-inp" type="password" id="auth-new-pass-conf" placeholder="Confirm new password"/></div>
-      <button class="auth-btn" id="auth-reset-btn">Update Password</button>
-    </div>
+      <!-- Magic Link -->
+      <div id="auth-magic-form" style="display:none;">
+        <div class="auth-field">
+          <div class="auth-label">Email address</div>
+          <input class="auth-inp" type="email" id="auth-email-magic" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <button class="auth-btn" id="auth-magic-btn">&#9993; Send Magic Link</button>
+        <div class="auth-footer-links">
+          <button class="auth-link" id="go-login-2">Back to sign in</button>
+          &nbsp;&middot;&nbsp;
+          <button class="auth-link" id="go-magic-2" style="display:none;">Use password instead</button>
+        </div>
+      </div>
 
-    <div class="auth-error" id="auth-error"></div>
-    <div class="auth-success" id="auth-success"></div>
+      <!-- Password Reset -->
+      <div id="auth-reset-form" style="display:none;">
+        <div class="auth-field">
+          <div class="auth-label">New password</div>
+          <input class="auth-inp" type="password" id="auth-new-pass" placeholder="Choose a new password"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Confirm new password</div>
+          <input class="auth-inp" type="password" id="auth-new-pass-conf" placeholder="Same password again"/>
+        </div>
+        <button class="auth-btn" id="auth-reset-btn">Update Password</button>
+      </div>
+
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-success" id="auth-success"></div>
+    </div>
   </div>
 </div>
 
