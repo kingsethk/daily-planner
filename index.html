@@ -1,1 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Progrex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
 
+<!-- ── AUTH SCREEN ── -->
+<div id="auth-screen" style="display:flex;">
+
+  <!-- Left panel — branding -->
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-brand-logo">progrex<span>.</span></div>
+      <div class="auth-brand-tagline">Stay organized.<br/>Stay ahead.</div>
+    </div>
+    <div class="auth-features">
+      <div class="auth-feature"><div class="auth-feature-icon">&#9632;</div><div><div class="auth-feature-title">Daily Planner</div><div class="auth-feature-desc">Tasks, goals, and calendar in one place</div></div></div>
+      <div class="auth-feature"><div class="auth-feature-icon">&#9632;</div><div><div class="auth-feature-title">Cloud Sync</div><div class="auth-feature-desc">Access your data from any device</div></div></div>
+      <div class="auth-feature"><div class="auth-feature-icon">&#9632;</div><div><div class="auth-feature-title">Notes & Journal</div><div class="auth-feature-desc">Rich text notes with groups and search</div></div></div>
+    </div>
+  </div>
+
+  <!-- Right panel — forms -->
+  <div class="auth-right">
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <div class="auth-title" id="auth-title">Welcome back</div>
+        <div class="auth-subtitle" id="auth-subtitle">Sign in to your Progrex account</div>
+      </div>
+
+      <!-- Login -->
+      <div id="auth-login-form">
+        <div class="auth-field">
+          <div class="auth-label">Email address</div>
+          <input class="auth-inp" type="email" id="auth-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Password</div>
+          <input class="auth-inp" type="password" id="auth-pass" placeholder="Your password" autocomplete="current-password"/>
+        </div>
+        <button class="auth-btn" id="auth-login-btn">Sign In</button>
+        <div class="auth-divider"><span>or continue with</span></div>
+        <button class="auth-btn-outline" id="go-magic">&#9993; Send me a magic link</button>
+        <div class="auth-footer-links">
+          Don't have an account? <button class="auth-link" id="go-signup">Create one free</button>
+        </div>
+      </div>
+
+      <!-- Sign Up -->
+      <div id="auth-signup-form" style="display:none;">
+        <div class="auth-field">
+          <div class="auth-label">Email address</div>
+          <input class="auth-inp" type="email" id="auth-email-2" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Password</div>
+          <input class="auth-inp" type="password" id="auth-pass-2" placeholder="At least 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Confirm password</div>
+          <input class="auth-inp" type="password" id="auth-pass-conf" placeholder="Same password again" autocomplete="new-password"/>
+        </div>
+        <button class="auth-btn" id="auth-signup-btn">Create Account</button>
+        <div class="auth-footer-links">
+          Already have an account? <button class="auth-link" id="go-login">Sign in</button>
+        </div>
+      </div>
+
+      <!-- Magic Link -->
+      <div id="auth-magic-form" style="display:none;">
+        <div class="auth-field">
+          <div class="auth-label">Email address</div>
+          <input class="auth-inp" type="email" id="auth-email-magic" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <button class="auth-btn" id="auth-magic-btn">&#9993; Send Magic Link</button>
+        <div class="auth-footer-links">
+          <button class="auth-link" id="go-login-2">Back to sign in</button>
+          &nbsp;&middot;&nbsp;
+          <button class="auth-link" id="go-magic-2" style="display:none;">Use password instead</button>
+        </div>
+      </div>
+
+      <!-- Password Reset -->
+      <div id="auth-reset-form" style="display:none;">
+        <div class="auth-field">
+          <div class="auth-label">New password</div>
+          <input class="auth-inp" type="password" id="auth-new-pass" placeholder="Choose a new password"/>
+        </div>
+        <div class="auth-field">
+          <div class="auth-label">Confirm new password</div>
+          <input class="auth-inp" type="password" id="auth-new-pass-conf" placeholder="Same password again"/>
+        </div>
+        <button class="auth-btn" id="auth-reset-btn">Update Password</button>
+      </div>
+
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-success" id="auth-success"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP SCREEN ── -->
+<div id="app-screen" style="display:none;">
+
+  <nav>
+    <div class="logo">progrex<span>.</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-page="planner">Planner</button>
+      <button class="nav-tab" data-page="journal">Journal</button>
+      <button class="nav-tab" data-page="notes">Notes</button>
+    </div>
+    <div class="nav-right">
+      <div class="user-badge" id="user-badge" style="display:none;">
+        <div class="avatar" id="user-avatar">U</div>
+        <span id="user-email" style="font-size:12px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <button class="auth-link" id="signout-btn" style="font-size:12px;color:var(--text3);margin-left:4px;">Sign out</button>
+      </div>
+      <button class="nav-icon-btn" id="settings-btn">&#9881; Settings</button>
+      <button class="nav-icon-btn donate-btn" id="donate-trigger">&#9829; Support Progrex</button>
+    </div>
+  </nav>
+
+  <!-- PLANNER -->
+  <div class="page active" id="page-planner"><div id="planner-canvas"></div></div>
+
+  <!-- JOURNAL -->
+  <div class="page" id="page-journal">
+    <div style="max-width:720px;margin:0 auto;">
+      <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);">
+        <div class="section-label">Journal</div>
+        <div class="journal-nav">
+          <button class="btn" id="j-prev">&#8249;</button>
+          <input type="date" id="j-date"/>
+          <button class="btn" id="j-next">&#8250;</button>
+          <span class="journal-save-lbl" id="j-status">Auto-saved</span>
+        </div>
+        <textarea class="note-ta-plain" id="j-text" style="min-height:460px;" placeholder="Write freely..."></textarea>
+        <div class="char-count" id="j-count">0 / 5,000 words</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="page" id="page-notes">
+    <div class="notes-outer">
+      <div class="notes-toolbar-bar">
+        <span class="notes-toolbar-title">Notes</span>
+        <span class="spacer"></span>
+        <button class="notes-layout-btn active" id="layout-two">Two Panel</button>
+        <button class="notes-layout-btn" id="layout-one">Full Editor</button>
+        <button class="btn primary sm" id="new-note-btn" style="margin-left:6px;">+ New Note</button>
+      </div>
+      <div class="notes-body">
+        <div class="notes-sidebar" id="notes-sidebar">
+          <div class="notes-search-wrap"><input class="notes-search" type="text" id="notes-search" placeholder="Search notes..."/></div>
+          <div class="notes-groups-list" id="notes-groups-list"></div>
+          <div class="notes-sidebar-footer"><button class="btn sm" id="new-group-btn" style="width:100%;">+ New Group</button></div>
+        </div>
+        <div class="note-editor-area">
+          <div class="note-empty-state" id="note-empty-state"><span style="font-size:32px;">&#128221;</span><span>Select a note or create a new one</span></div>
+          <div class="note-editor-wrap" id="note-editor-wrap">
+            <div class="note-editor-header">
+              <input class="note-title-inp" type="text" id="note-title-inp" placeholder="Title"/>
+              <select class="note-group-sel" id="note-group-sel"></select>
+              <span class="note-char-count" id="note-char-count">0 / 10,000</span>
+              <button class="note-del-btn" id="note-del-btn">&#128465;</button>
+            </div>
+            <div class="rte-toolbar" id="rte-toolbar">
+              <select class="rte-select" id="rte-format">
+                <option value="p">Normal</option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+              </select>
+              <select class="rte-select" id="rte-size" style="width:54px;">
+                <option value="1">10</option><option value="2">13</option>
+                <option value="3" selected>15</option><option value="4">18</option>
+                <option value="5">24</option><option value="6">32</option>
+              </select>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+              <button class="rte-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+              <button class="rte-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+              <button class="rte-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+              <div class="rte-sep"></div>
+              <input class="rte-color" type="color" id="rte-text-color" value="#1a1a18" title="Text color"/>
+              <input class="rte-color" type="color" id="rte-bg-color" value="#ffff00" title="Highlight"/>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" data-cmd="insertUnorderedList" title="Bullets">&#8226;&#8801;</button>
+              <button class="rte-btn" data-cmd="insertOrderedList" title="Numbers">1&#8801;</button>
+              <button class="rte-btn" data-cmd="indent" title="Indent">&#8677;</button>
+              <button class="rte-btn" data-cmd="outdent" title="Outdent">&#8676;</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" data-cmd="justifyLeft" title="Left">&#8678;</button>
+              <button class="rte-btn" data-cmd="justifyCenter" title="Center">&#8596;</button>
+              <button class="rte-btn" data-cmd="justifyRight" title="Right">&#8680;</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" id="rte-link" title="Link">&#128279;</button>
+              <button class="rte-btn" data-cmd="insertHorizontalRule" title="Divider">&#8213;</button>
+              <button class="rte-btn" id="rte-quote" title="Quote">&#10077;</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" id="rte-undo" title="Undo">&#8617;</button>
+              <button class="rte-btn" id="rte-redo" title="Redo">&#8618;</button>
+              <button class="rte-btn" data-cmd="removeFormat" title="Clear">&#10006;</button>
+            </div>
+            <div class="note-content" id="note-content" contenteditable="true" data-placeholder="Start writing..."></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PANEL -->
+  <div class="settings-overlay" id="settings-overlay"></div>
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-panel-header">
+      <h2>Settings</h2>
+      <button class="settings-close" id="settings-close">&#10005;</button>
+    </div>
+    <div class="settings-body" id="settings-body"></div>
+  </div>
+
+  <!-- CALENDAR POPOUT -->
+  <div class="modal-backdrop" id="cal-popout-modal" style="z-index:600;align-items:stretch;padding:0;">
+    <div style="background:var(--bg2);width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:0.5px solid var(--border);background:var(--bg2);flex-shrink:0;">
+        <div class="logo" style="font-size:16px;">progrex<span style="color:var(--work)">.</span></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn" id="cal-pop-prev">&#8249; Prev</button>
+          <span id="cal-pop-month-lbl" style="font-size:15px;font-weight:600;color:var(--text);min-width:140px;text-align:center;"></span>
+          <button class="btn" id="cal-pop-next">Next &#8250;</button>
+          <button class="btn" id="cal-pop-today" style="margin-left:4px;">Today</button>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn" id="cal-pop-view-month">Month</button>
+          <button class="btn" id="cal-pop-view-week">Week</button>
+          <button class="btn ghost" id="cal-popout-close">&#10005; Close</button>
+        </div>
+      </div>
+      <div id="cal-pop-body" style="flex:1;overflow:auto;"></div>
+    </div>
+  </div>
+
+  <!-- GOAL MODAL -->
+  <div class="modal-backdrop" id="goal-modal">
+    <div class="modal">
+      <h3 id="goal-modal-title">Add Goal</h3>
+      <div class="add-field"><div class="add-label">Goal</div><input class="inp" type="text" id="gm-text" placeholder="What do you want to achieve?"/></div>
+      <div class="add-field"><div class="add-label">Deadline (optional)</div><input class="inp" type="date" id="gm-deadline"/></div>
+      <div class="modal-actions">
+        <button class="btn primary" id="gm-save">Save Goal</button>
+        <button class="btn ghost" id="gm-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING TOOLBAR -->
+  <div class="floating-toolbar" id="floating-toolbar">
+    <button class="ft-btn" data-cmd="bold"><b>B</b></button>
+    <button class="ft-btn" data-cmd="italic"><i>I</i></button>
+    <button class="ft-btn" data-cmd="underline"><u>U</u></button>
+    <div class="ft-sep"></div>
+    <button class="ft-btn" data-cmd="insertUnorderedList">&#8226;</button>
+    <button class="ft-btn" id="ft-link">&#128279;</button>
+    <div class="ft-sep"></div>
+    <button class="ft-btn" data-cmd="removeFormat">&#10006;</button>
+  </div>
+
+  <!-- SYNC STATUS -->
+  <div class="sync-status" id="sync-status"></div>
+
+</div><!-- end app-screen -->
+
+<!-- SCRIPTS — order matters -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
