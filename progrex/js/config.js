@@ -1,0 +1,3 @@
+// Progrex — Supabase config
+const SUPABASE_URL = 'https://owbmkuougeldlyuwlyaw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93Ym1rdW91Z2VsZGx5dXdseWF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NTk1NzYsImV4cCI6MjEwNDIzNTU3Nn0.HddzLMRkw_EOlrLtHG3zbQPipuF5NSa7Z8aCDX5ghwc';
