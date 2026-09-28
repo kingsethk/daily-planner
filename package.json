@@ -1,0 +1,8 @@
+{
+  "name": "progrex",
+  "version": "1.0.0",
+  "description": "Progrex daily planner",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}
